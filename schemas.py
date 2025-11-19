@@ -1,48 +1,36 @@
 """
-Database Schemas
+Database Schemas for FitCheck
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
+Each Pydantic model represents a MongoDB collection.
+Collection name = lowercase of class name.
 
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+- User -> "user"
+- Item -> "item"
+- Outfit -> "outfit"
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, HttpUrl
+from typing import List, Optional
+from datetime import date
 
-# Example schemas (replace with your own):
-
+# Users: Name, Email, Profile Picture.
 class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
     name: str = Field(..., description="Full name")
     email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    profile_picture: Optional[HttpUrl] = Field(None, description="Profile image URL")
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+# Items: Image URL, Category (Top, Bottom, Shoes, Outerwear, Accessory),
+# Season (Summer, Winter, All), Color, Brand, Last_Worn_Date.
+class Item(BaseModel):
+    image_url: HttpUrl = Field(..., description="Public image URL of the clothing item")
+    category: str = Field(..., description="One of: Top, Bottom, Shoes, Outerwear, Accessory")
+    season: str = Field("All", description="One of: Summer, Winter, All")
+    color: Optional[str] = Field(None, description="Primary color")
+    brand: Optional[str] = Field(None, description="Brand name")
+    last_worn_date: Optional[date] = Field(None, description="When it was last worn")
 
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+# Outfits: List of Items (Linked), Date_Created, Is_Favorite (Boolean).
+class Outfit(BaseModel):
+    items: List[str] = Field(..., description="List of linked item IDs as strings")
+    date_created: Optional[date] = Field(None, description="Creation date; defaults to today if not provided")
+    is_favorite: bool = Field(False, description="Whether the outfit is favorited")
